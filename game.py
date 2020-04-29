@@ -14,6 +14,15 @@ Board Layout
 Hand: 00
 """
 
+"""
+First_move: 10, 8
+                Second_move:
+            10, 9
+            10, 11
+            10, 12
+            10, 13
+"""
+
 holes = {
     player : [1, 2, 3, 4, 5, 6],
     ai : [8, 9, 10, 11, 12, 13]
@@ -29,77 +38,267 @@ role = 2
 
 house = 88
 bank = 99
-
-hole = {
-    1: { owner : player, next : { player : 2, ai : 2}, role : house },
-    2: { owner : player, next : { player : 3, ai : 3}, role : house },
-    3: { owner : player, next : { player : 4, ai : 4}, role : house },
-    4: { owner : player, next : { player : 5, ai : 5}, role : house },
-    5: { owner : player, next : { player : 6, ai : 6}, role : house },
-    6: { owner : player, next : { player : 7, ai : 7}, role : house },
-    7: { owner : player, next : { player : 8, ai : 8}, role : bank },
-    8: { owner : ai, next : { player : 9, ai : 9}, role : house },
-    9: { owner : ai, next : { player : 10, ai : 10}, role : house },
-    10: { owner : ai, next : { player : 11, ai : 11}, role : house },
-    11: { owner : ai, next : { player : 12, ai : 12}, role : house },
-    12: { owner : ai, next : { player : 13, ai : 13}, role : house },
-    13: { owner : ai, next : { player : 1, ai : 14}, role : house },
-    14: { owner : ai, next : { player : 1, ai : 1}, role : bank }
+# naming issue
+h = {
+    1: { owner : player, next : { player : 2, ai : 2}, role : "hole", "oop": 13, "distobank":  {player: 6, ai: 12}},
+    2: { owner : player, next : { player : 3, ai : 3}, role : "hole", "oop": 12, "distobank":  {player: 5, ai: 11}},
+    3: { owner : player, next : { player : 4, ai : 4}, role : "hole", "oop": 11, "distobank":  {player: 4, ai: 10}},
+    4: { owner : player, next : { player : 5, ai : 5}, role : "hole", "oop": 10, "distobank":  {player: 3, ai: 9}},
+    5: { owner : player, next : { player : 6, ai : 6}, role : "hole", "oop": 9, "distobank":  {player: 2, ai: 8}},
+    6: { owner : player, next : { player : 7, ai : 7}, role : "hole", "oop": 8, "distobank":  {player: 1, ai: 6}},
+    7: { owner : player, next : { player : 8, ai : 8}, role : "bank", "oop": None, "distobank": None},
+    8: { owner : ai, next : { player : 9, ai : 9}, role : "hole", "oop": 6, "distobank":  {player: 12, ai: 6}},
+    9: { owner : ai, next : { player : 10, ai : 10}, role : "hole", "oop": 5, "distobank":  {player: 11, ai: 5}},
+    10: { owner : ai, next : { player : 11, ai : 11}, role : "hole", "oop": 4, "distobank":  {player: 10, ai: 4}},
+    11: { owner : ai, next : { player : 12, ai : 12}, role : "hole", "oop": 3, "distobank":  {player: 9, ai: 3}},
+    12: { owner : ai, next : { player : 13, ai : 13}, role : "hole", "oop": 2, "distobank":  {player: 8, ai: 2}},
+    13: { owner : ai, next : { player : 1, ai : 14}, role : "hole", "oop": 1, "distobank":  {player: 7, ai: 1}},
+    14: { owner : ai, next : { player : 1, ai : 1}, role : "bank", "oop": None, "distobank": None }
 }
 hand = 0
-all_marbles = range(0, 14)
+all_holes = range(1, 15)
 class kalahGame():
-    def __init__(self):
+    def __init__(self, players):
         self.players = players
-        self.turn = 1 #shows players turn
-        self.board = [0]*15
+        self.turn = player #shows players turn
+        self.opp_turn = ai
+        self.board = [0]*15 # index 0 holds all the marbles at first
+        # print("self.board in init: ", len(self.board))
         self.marbles_per_hole = 4
         self.board[hand] = 12*self.marbles_per_hole
         self.reset_board()
 
-    def possible_moves(self):
-        pass
+    def is_own_bank(self, last_hole):
+        #num of marble in this hole
+        # print("in is_own_bank: ", last_hole)
+        # print("self.board[last_hole]: ", self.board[last_hole])
+        count = self.board[last_hole] % 13 #if number of marble is > 12 they go around and land in bank itself
+        # print("count: ", count)
+        # print("h: ", h[last_hole]["distobank"][self.turn])
+        return count == h[last_hole]["distobank"][self.turn]
 
-    def make_move(self):
-        pass
+    def possible_moves(self):
+        move_list = [[hole] for hole in self.possible_moves_choice()] # list of list
+        # print("move_list: ", move_list)
+        completed_list = []
+        self.recurse_moves(move_list, completed_list)
+        # print("completed_list: ", completed_list)
+        return completed_list
+
+    def make_move(self, move):
+        for hole in move:
+            return sef.make_move_choice(hole)
+
+    def recurse_moves(self, move_list, completed_list):
+        for move in move_list:
+            last_hole = move[-1]
+            # print("last_hole: ", last_hole)
+            if self.is_own_bank(last_hole):
+                # print("should not get here")
+                board_copy = self.board.copy() # to restore the board
+                self.make_move_choice(last_hole) # take marbles from last hole and go around to drop one
+                aval_holes = self.possible_moves_choice() # next set of holes with marble/marbles
+                if aval_holes:
+                    next_vist = []
+                    for hole in aval_holes:
+                        next_vist.append(move+[hole]) # adding next available vists to exsiting ones
+                    # print("next visit: ", next_vist)
+                    self.recurse_moves(next_vist, completed_list)
+                    # print("done!")
+                else: # no available marbles in hole
+                    completed_list.append(move)
+                self.board = board_copy #not sure the need of restoring, if aval_holes is not triggered board will not be modified
+            else: #last_hole is not bank
+                completed_list.append(move)
+                # print("completed_list: ", completed_list)
+
+
+    def possible_moves_choice(self):
+        possible = []
+        for hole in holes[self.turn]:
+            if self.board[hole]:
+                possible.append(hole)
+
+        # print("possible: ", possible)
+        return possible
+
+
+    def get_move(self):
+        """ for ai to make move
+        """
+        print("ai getting move")
+        poss_moves = self.possible_moves() #compelete list of moves
+        print("poss_moves: ", poss_moves)
+        best_move = 0 #
+        for i in range(1, len(poss_moves)):
+            if len(poss_moves[i]) > len(poss_moves[best_move]):
+                best_move = i
+        return poss_moves[best_move]
+        # self.show()
+        # check if ai can land in it's own bank
+        # best_move = float('-inf')
+        # for move in self.possible_moves_choice():
+        #     if self.is_own_bank(move):
+        #         print("move in ai:", move)
+        #         self.make_move_choice(move)
+
+
+
+    def make_move_choice(self, hole):
+        # pick all the marbles in hole
+        self._scoop(hole)
+        cur_hole = hole
+        # print("cur_hole: ", cur_hole)
+        # drop marbles to adjacent holes
+        for i in range(self.board[hand]):
+            # get the next hole
+            next_hole = h[cur_hole][next][self.turn]
+            self._drop(next_hole, 1) #start dropping marble
+            cur_hole = next_hole
+
+        # Capture if possible               Check we are not on bank
+        if self.board[cur_hole] == 1 and cur_hole != (banks[player] or banks[ai]): # are we left with one marble
+            if h[cur_hole][owner] == self.turn: # check turn
+                if h[cur_hole][role] == hole: # check if we are on hole
+                    if self.board[h[cur_hole][oop]]: #look for current hole's opponent
+                        self._scoop(cur_hole) #take marble from current hole
+                        self._scoop(h[cur_hole][oop]) #take marbles from opponent
+                        self._drop_all(banks[self.turn])
+
+
+
+    def play_move(self, moves):
+        print("about to play move: ", moves)
+        for move in moves:
+            self.make_move_choice(move)
+        print("Played!!")
+        if self.turn == player:
+            self.turn = ai
+        else: #self.turn == 0
+            self.turn = player
+        print("self.turn: ", self.turn)
+        # if cur_hole == banks[players[self.turn]]:
+        #
+        #     print("who's turn: ", cur_hole)
+        # print("self.turn: ", self.turn)
 
     def is_over(self):
-        pass
+        for player in players:
+            # print("player in is over: ", player, "holes player: ", holes[player])
+            has_marbles = False
+            for hole in holes[player]:
+                if self.board[hole]:
+                    has_marbles = True
+            if has_marbles is False:
+                return True
+        return False
 
     def show(self):
-        print("player: {}".format(self.turn))
+        print("player: {} score: {}".format(self.turn, self.score()))
         print("hand: {}".format(self.board[hand]))
         print("board:\n")
         print("             13         12         11          10           09          08                    ")
         print("       " + " ".join(
             ["    [{:02d}]   ".format(self.board[hole]) for hole in reversed(holes[ai])]
         ))
-        print(" {:02d}  [{:02d}]                                                                     [{:02d}]  {:02d}".format(banks[ai], hand, hand, banks[player]))
+        print(" {:02d}  [{:02d}]                                                                     [{:02d}]  {:02d}".format(
+            banks[ai], self.board[banks[ai]], self.board[banks[player]], banks[player]
+        ))
         print("       " + " ".join(
-            ["    [{:02d}]   ".format(self.board[hole]) for hole in reversed(holes[player])]
+            ["    [{:02d}]   ".format(self.board[hole]) for hole in holes[player]]
         ))
         print("             01         02         03          04           05          06                      ")
 
-    def score(self):
-        pass
+    def score(self, playing=None):
+        if playing == None:
+            playing = self.turn
+        if playing == ai:
+            self.turn = ai
+            self.opp_turn = player
+        else:
+            self.turn = player
+            self.opp_turn = ai
+        return self.board[banks[self.turn]] - self.board[banks[self.opp_turn]]
 
     def reset_board(self):
-        for marble in all_marbles:
-            if self.board[marble]:
-                self._scoop(marble)
+        """ Creates a boad with 4 marbles in each
+            hole and 0 marble in each bank
+        """
+        # print("board: ", self.board)
+        for hole in all_holes: # for hole in the holes including bank holes
+            # print("hole: ", hole)
+            if self.board[hole]: # check if there is/are marble/marbles in specific hole
+                self._scoop(hole) # get the marble/marbles at the specific hole
 
         for player in self.players:
             for hole in holes[player]:
                 self._drop(hole, count = self.marbles_per_hole)
 
-    def _scoop(self, marble):
-        self.board[hand] += self.board[marble]
-        self.board[marble] = 0
+    def _scoop(self, hole): #not triggered when board is reset
+        self.board[hand] += self.board[hole]
+        self.board[hole] = 0
 
-    def _drop(self, hole, count):
+    def _drop(self, hole, count): #drop 4 marbles for each hole in the board
         self.board[hand] -= count
         self.board[hole] += count
 
+    def _drop_all(self, at_bank):
+        self.board[at_bank] += self.board[hand]
+        self.board[hand] = 0
+
+    # def prompt(self):
+        # play = int(input("what do you wanna play? "))
+        # self.make_move(play)
+        # game.show()
+
+    def get_winner(self):
+        player_score = self.score(playing=player)
+        ai_score = self.score(playing=ai)
+        if player_score > ai_score:
+            return 1
+        elif player_score < ai_score:
+            return 2
+        else: #player_score == ai_score
+            return 0
+
+
 if __name__ == '__main__':
-    game = kalahGame()
+    game = kalahGame(players)
+    # game.possible_moves_choice()
+
+    count = 0
+    while not game.is_over():
+        game.show()
+        if game.turn == player:
+            moves = game.possible_moves()
+            for i, move in enumerate(moves): #no need to enumerate, show user their option and let them choose
+                print(i, move)
+            i = int(input("which move do you wanna play? "))
+            move = moves[i]
+            print("moves available: ", moves)
+            print("move to be played: ", move)
+
+        else:
+            move = game.get_move()
+
+        game.play_move(move)
+        count += 1
+        if count == 2:
+            game.show()
+            # break
+    print("GAME OVER!")
     game.show()
+    print("Result", ["Tie", "Player is Winner", "AI is Winner"][game.get_winner()])
+
+
+
+    """
+[[8], [9], [10, 8], [10, 9], [10, 11, 8], [10, 11, 9], [10, 11, 12], [10, 11, 13], [10, 12, 8], [10, 12, 9], [10, 12, 11, 8], [10, 12
+, 11, 9], [10, 12, 11, 12], [10, 12, 11, 13], [10, 12, 13], [10, 13], [11], [12], [13, 8], [13, 9], [13, 10, 8], [13, 10, 9], [13, 10, 11, 8], [13
+, 10, 11, 9], [13, 10, 11, 12], [13, 10, 11, 13], [13, 10, 12, 8], [13, 10, 12, 9], [13, 10, 12, 11, 8], [13, 10, 12, 11, 9], [13, 10, 12, 11, 12]
+, [13, 10, 12, 11, 13], [13, 10, 12, 13], [13, 10, 13, 8], [13, 10, 13, 9], [13, 10, 13, 11, 8], [13, 10, 13, 11, 9], [13, 10, 13, 11, 12], [13, 1
+0, 13, 11, 13, 8], [13, 10, 13, 11, 13, 9], [13, 10, 13, 11, 13, 12], [13, 10, 13, 12, 8], [13, 10, 13, 12, 9], [13, 10, 13, 12, 11, 8], [13, 10,
+13, 12, 11, 9], [13, 10, 13, 12, 11, 12], [13, 10, 13, 12, 11, 13], [13, 10, 13, 12, 13, 8], [13, 10, 13, 12, 13, 9], [13, 10, 13, 12, 13, 11, 8],
+ [13, 10, 13, 12, 13, 11, 9], [13, 10, 13, 12, 13, 11, 12], [13, 10, 13, 12, 13, 11, 13, 8], [13, 10, 13, 12, 13, 11, 13, 9], [13, 10, 13, 12, 13,
+ 11, 13, 12], [13, 11], [13, 12]]
+    """
