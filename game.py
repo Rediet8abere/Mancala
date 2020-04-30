@@ -89,7 +89,12 @@ class kalahGame():
         for hole in move:
             return sef.make_move_choice(hole)
 
+
+
+    "Is steal possible "
+
     def recurse_moves(self, move_list, completed_list):
+        """Utility: is_own_bank """
         for move in move_list:
             last_hole = move[-1]
             # print("last_hole: ", last_hole)
@@ -122,25 +127,86 @@ class kalahGame():
         # print("possible: ", possible)
         return possible
 
+    def minimax(self, move, depth, maximazing_player):
+        """
+        depth: how long is it taking me to get to a certain move
+        maximazing_player: to keep track of whose turn it is in the game
+        and decides moves based on that.
+
+        # http://people.cs.uchicago.edu/~jagolbec/cspp513/mancala.html
+
+        # https://towardsdatascience.com/how-a-chess-playing-computer-thinks-about-its-next-move-8f028bd0e7b1
+        Utility: holes with marbles and where those marbles are located,
+                how close are we to winning, position of opponent
+
+        Q/C: we are calculating our ai's move based on player's best moves
+            : do we calcuate ai's move based on players action or do we assume
+            user makes the best move they can make and calcuate the move store it
+            and let ai play based on that?
+        """
+        """
+        Assumptions: we go as far as we can and look at the counts of marbles in players and
+                     ai's count
+        """
+        """
+        for loop plays game subsequently which might not be the case when player plays the game
+        """
+        if depth == 0:
+            return self.board[banks[self.opp_turn]]
+
+        if maximazing_player:
+            max_score = float('-inf')
+            # play move
+            print("move in maximazing_player: ", move)
+            self.play_move(move)
+            # now turn is opponent's
+            # max_score = banks[self.opp_turn] #ai now have opp_turn after playing move
+            # 0, 1
+            opp_moves = self.possible_moves()
+            print("opp_moves in maximazing_player: ", opp_moves)
+            for op_move in opp_moves:
+                eval = self.minimax(op_move, depth-1, False) #c
+                max_score = max(eval, max_score)
+            return max_score
+
+        else: # minimizing_player
+            min_score = float('inf') #we wnat worst score for player
+            # play move
+            print("move in minimizing_player: ", move)
+            self.play_move(move)
+            # now turn is opponent's
+            # min_score = banks[self.opp_turn] #opponent now have opp_turn
+            #depth: 5
+            # 2, 3
+            ai_moves = self.possible_moves()
+            print("ai_moves in minimizing_player: ", ai_moves)
+            for ai_move in ai_moves:
+                print("ai_move: ", ai_move)
+                eval = self.minimax(ai_move, depth-1, True) #c
+                print("eval: ", eval)
+                min_score = min(min_score, eval)
+            return min_score
+
+
+
+
 
     def get_move(self):
-        """ for ai to make move
-        """
+        best_score = 0 #a move that would result in storing as many marbles as possible in ai bank
+        best_move = []
         print("ai getting move")
         poss_moves = self.possible_moves() #compelete list of moves
         print("poss_moves: ", poss_moves)
-        best_move = 0 #
-        for i in range(1, len(poss_moves)):
-            if len(poss_moves[i]) > len(poss_moves[best_move]):
-                best_move = i
-        return poss_moves[best_move]
-        # self.show()
-        # check if ai can land in it's own bank
-        # best_move = float('-inf')
-        # for move in self.possible_moves_choice():
-        #     if self.is_own_bank(move):
-        #         print("move in ai:", move)
-        #         self.make_move_choice(move)
+        board_copy = self.board
+        for move in poss_moves:
+            #look for ai move that would result in best score(many marble in bank)
+            ai_score = self.minimax(move, 6, True) #return score and move
+            # compare score and replace move based on score
+            if ai_score > best_score:
+                best_move = move
+                best_score = ai_score
+        self.board = board_copy
+        return best_move
 
 
 
@@ -174,9 +240,11 @@ class kalahGame():
         print("Played!!")
         if self.turn == player:
             self.turn = ai
+            self.opp_turn = player
         else: #self.turn == 0
             self.turn = player
-        print("self.turn: ", self.turn)
+            self.opp_turn = ai
+        print("self.turn: ", self.turn, "self.opp_turn: ", self.opp_turn)
         # if cur_hole == banks[players[self.turn]]:
         #
         #     print("who's turn: ", cur_hole)
@@ -235,6 +303,7 @@ class kalahGame():
                 self._drop(hole, count = self.marbles_per_hole)
 
     def _scoop(self, hole): #not triggered when board is reset
+        print("hole: ", hole)
         self.board[hand] += self.board[hole]
         self.board[hole] = 0
 
@@ -266,26 +335,28 @@ if __name__ == '__main__':
     game = kalahGame(players)
     # game.possible_moves_choice()
 
-    count = 0
     while not game.is_over():
         game.show()
         if game.turn == player:
+            # moves = game.possible_moves_choice()
             moves = game.possible_moves()
+            # print("moves: ", moves)
+            # for i, move in enumerate(moves):
+            #     print(i, move)
+            # break
             for i, move in enumerate(moves): #no need to enumerate, show user their option and let them choose
                 print(i, move)
             i = int(input("which move do you wanna play? "))
             move = moves[i]
-            print("moves available: ", moves)
-            print("move to be played: ", move)
+            print("move: ", move)
+            # print("moves available: ", moves)
+            # print("move to be played: ", move)
 
         else:
             move = game.get_move()
-
+            print("moveL", move)
         game.play_move(move)
-        count += 1
-        if count == 2:
-            game.show()
-            # break
+
     print("GAME OVER!")
     game.show()
     print("Result", ["Tie", "Player is Winner", "AI is Winner"][game.get_winner()])
@@ -293,8 +364,32 @@ if __name__ == '__main__':
 
 
     """
-[[8], [9], [10, 8], [10, 9], [10, 11, 8], [10, 11, 9], [10, 11, 12], [10, 11, 13], [10, 12, 8], [10, 12, 9], [10, 12, 11, 8], [10, 12
-, 11, 9], [10, 12, 11, 12], [10, 12, 11, 13], [10, 12, 13], [10, 13], [11], [12], [13, 8], [13, 9], [13, 10, 8], [13, 10, 9], [13, 10, 11, 8], [13
+[ [8]
+, [9]
+
+
+
+
+, [10, 8]
+, [10, 9]
+, [10, 11, 8]
+, [10, 11, 9]
+, [10, 11, 12]
+, [10, 11, 13]
+, [10, 12, 8]
+, [10, 12, 9]
+, [10, 12, 11, 8]
+, [10, 12, 11, 9]
+, [10, 12, 11, 12]
+, [10, 12, 11, 13]
+, [10, 12, 13]
+, [10, 13]
+
+
+
+
+
+, [11], [12], [13, 8], [13, 9], [13, 10, 8], [13, 10, 9], [13, 10, 11, 8], [13
 , 10, 11, 9], [13, 10, 11, 12], [13, 10, 11, 13], [13, 10, 12, 8], [13, 10, 12, 9], [13, 10, 12, 11, 8], [13, 10, 12, 11, 9], [13, 10, 12, 11, 12]
 , [13, 10, 12, 11, 13], [13, 10, 12, 13], [13, 10, 13, 8], [13, 10, 13, 9], [13, 10, 13, 11, 8], [13, 10, 13, 11, 9], [13, 10, 13, 11, 12], [13, 1
 0, 13, 11, 13, 8], [13, 10, 13, 11, 13, 9], [13, 10, 13, 11, 13, 12], [13, 10, 13, 12, 8], [13, 10, 13, 12, 9], [13, 10, 13, 12, 11, 8], [13, 10,
@@ -302,3 +397,28 @@ if __name__ == '__main__':
  [13, 10, 13, 12, 13, 11, 9], [13, 10, 13, 12, 13, 11, 12], [13, 10, 13, 12, 13, 11, 13, 8], [13, 10, 13, 12, 13, 11, 13, 9], [13, 10, 13, 12, 13,
  11, 13, 12], [13, 11], [13, 12]]
     """
+
+"""
+0 [2]
+1 [4, 1]
+2 [4, 2]
+3 [4, 3]
+4 [4, 4]
+5 [4, 5, 1]
+6 [4, 5, 2]
+7 [4, 5, 3]
+8 [4, 5, 4]
+9 [4, 5, 6]
+10 [4, 6]
+11 [6, 2]
+12 [6, 4, 1]
+13 [6, 4, 2]
+14 [6, 4, 3]
+15 [6, 4, 4]
+16 [6, 4, 5, 1]
+17 [6, 4, 5, 2]
+18 [6, 4, 5, 3]
+19 [6, 4, 5, 4]
+20 [6, 4, 5, 6]
+21 [6, 4, 6]
+"""
