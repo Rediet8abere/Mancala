@@ -161,7 +161,8 @@ class kalahGame():
             self.play_move(move)
             print("opp_turn: ", self.opp_turn, "move: ", move)
             self.show()
-            return self.board[banks[self.opp_turn]] #return current opponent's score
+            return self.score()
+            # self.board[banks[self.opp_turn]] #return current opponent's score
 
         if maximazing_player:
             max_score = float('-inf')
@@ -210,6 +211,7 @@ class kalahGame():
                 self.opp_turn = player
                 print("eval: ", eval)
                 min_score = min(min_score, eval)
+            print("!!!!!!!!!!!loop is done!!!!!!!!!!!!", min_score)
             return min_score
 
 
@@ -224,14 +226,14 @@ class kalahGame():
         print("poss_moves: ", poss_moves)
         print("**********current state***********")
         self.show()
-        board_copy = self.board
+        board_copy = self.board[:]
         for move in poss_moves:
             #look for ai move that would result in best score(many marble in bank)
             ai_score = self.minimax(move, 2, True) #return score and move
             # compare score and replace move based on score
             print("-----------------after minmax excepecting my board to be alterd------------------")
             self.show()
-            self.board = board_copy
+            self.board = board_copy[:]
             print("-----------------I restored my board----------------------")
             print(self.show())
             print("ai_score", ai_score, "best_score: ", best_score)
