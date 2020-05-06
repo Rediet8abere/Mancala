@@ -1,4 +1,7 @@
-
+"""
+This work is based on John Dupuy's YouTube tutorial
+link: https://www.youtube.com/watch?v=Y6P-_sTYQcM
+"""
 
 player = 0
 ai = 1
@@ -158,60 +161,61 @@ class kalahGame():
         # evaluate who has more marbles
         # evaluate who has more moves that leads to bank and steal
         if depth == 0: #I need to account for game over
-            self.play_move(move)
-            print("opp_turn: ", self.opp_turn, "move: ", move)
-            self.show()
+            # self.play_move(move)
+            # print("opp_turn: ", self.opp_turn, "move: ", move)
+            # self.show()
             return self.score()
             # self.board[banks[self.opp_turn]] #return current opponent's score
 
         if maximazing_player:
             max_score = float('-inf')
             # play move
-            print("move in maximazing_player: ", move)
+            # print("move in maximazing_player: ", move)
             self.play_move(move)
-            print("###############board state after playing move#################")
-            self.show()
+            # print("###############board state after playing move#################")
+            # self.show()
             # now turn is opponent's
             # max_score = banks[self.opp_turn] #ai now have opp_turn after playing move
             # 0, 1
             opp_moves = self.possible_moves()
-            print("opp_moves in maximazing_player: ", opp_moves, "depth: ", depth)
+            # print("opp_moves in maximazing_player: ", opp_moves, "depth: ", depth)
             board_copy = self.board[:]
             for op_move in opp_moves:
-                eval = self.minimax(op_move, depth-1, False) #c
+                eval = self.minimax(op_move, depth-1, False) #naming eval_score
                 self.board = board_copy[:]
                 self.turn = player
                 self.opp_turn = ai
-                print("eval: ", eval)
+                # print("op_move:", op_move, "eval: ", eval)
                 max_score = max(eval, max_score)
+            # print("!!!!!!!!!!!!!!!!!!!!loop is done max_score!!!!!!!!!!!!!!!:", max_score)
             return max_score
 
         else: # minimizing_player
             min_score = float('inf') #we wnat worst score for player
             # play move
-            print("move in minimizing_player: ", move)
-            print("************before playing ^ move************************")
-            self.show()
+            # print("move in minimizing_player: ", move)
+            # print("************before playing ^ move************************")
+            # self.show()
             self.play_move(move)
-            print("###############board state after playing move#################")
-            self.show()
+            # print("###############board state after playing move#################")
+            # self.show()
             # now turn is opponent's
             # min_score = banks[self.opp_turn] #opponent now have opp_turn
             #depth: 5
             # 2, 3
             # I need to recover board
-            print("should be ai's turn: ", self.turn)
+            # print("should be ai's turn: ", self.turn)
             ai_moves = self.possible_moves()
-            print("ai_moves in minimizing_player: ", ai_moves, "depth: ", depth)
+            # print("ai_moves in minimizing_player: ", ai_moves, "depth: ", depth)
             board_copy = self.board[:]
             for ai_move in ai_moves:
                 eval = self.minimax(ai_move, depth-1, True) #c
                 self.board = board_copy[:]
                 self.turn = ai
                 self.opp_turn = player
-                print("eval: ", eval)
+                # print("ai_move:", ai_move, "eval: ", eval)
                 min_score = min(min_score, eval)
-            print("!!!!!!!!!!!loop is done!!!!!!!!!!!!", min_score)
+            # print("!!!!!!!!!!!loop is done!!!!!!!!!!!!", min_score)
             return min_score
 
 
@@ -219,33 +223,42 @@ class kalahGame():
 
 
     def get_move(self):
-        best_score = 0 #a move that would result in storing as many marbles as possible in ai bank
+        best_score = float('-inf') #a move that would result in storing as many marbles as possible in ai bank
         best_move = []
         # print("ai getting move")
         poss_moves = self.possible_moves() #compelete list of moves
-        print("poss_moves: ", poss_moves)
-        print("**********current state***********")
-        self.show()
+        print(">>>>>>>>>>poss_moves: ", poss_moves)
+        # print("**********current state***********")
+        # self.show()
+        # count = 0
         board_copy = self.board[:]
         for move in poss_moves:
             #look for ai move that would result in best score(many marble in bank)
-            ai_score = self.minimax(move, 2, True) #return score and move
+            ai_score = self.minimax(move, 4, True) #return score and move
             # compare score and replace move based on score
-            print("-----------------after minmax excepecting my board to be alterd------------------")
-            self.show()
+            # print("-----------------after minmax excepecting my board to be alterd------------------")
+            # self.show()
+            # count += 1
             self.board = board_copy[:]
-            print("-----------------I restored my board----------------------")
-            print(self.show())
-            print("ai_score", ai_score, "best_score: ", best_score)
-            print("best_move: ", best_move, "move: ", move)
-            break
+            # print("-----------------I restored my board----------------------")
+            # print(self.show())
+            # print("ai_score", ai_score, "best_score: ", best_score)
+            # print("best_move: ", best_move, "move: ", move)
+
             if ai_score > best_score:
                 best_move = move
                 best_score = ai_score
-
-        print("**********current state after choosing the best move***********")
-        self.show()
-        return
+                # print("**********ai_score", ai_score, "best_score: ", best_score)
+                # print("**********move: ", move, "best_move: ", best_move)
+            # if 2 == count:
+            #     break
+            # count += 1
+        # print("ai_score", ai_score, "best_score: ", best_score)
+        # print("best_move: ", best_move, "move: ", move)
+        # print("**********current state after choosing the best move***********")
+        # self.show()
+        self.turn = ai
+        print("self.turn in get move: ", self.turn)
         return best_move
 
 
@@ -326,7 +339,9 @@ class kalahGame():
         else:
             self.turn = player
             self.opp_turn = ai
-        return self.board[banks[self.turn]] - self.board[banks[self.opp_turn]]
+        #positive for if ai is lead
+        return self.board[banks[ai]] - self.board[banks[player]]
+        # return self.board[banks[self.turn]] - self.board[banks[self.opp_turn]]
 
     def reset_board(self):
         """ Creates a boad with 4 marbles in each
@@ -375,8 +390,10 @@ if __name__ == '__main__':
     game = kalahGame(players)
     # game.possible_moves_choice()
 
+    count = 0
     while not game.is_over():
         game.show()
+        print("................................game turn........................................", game.turn)
         if game.turn == player:
             # moves = game.possible_moves_choice()
             moves = game.possible_moves()
@@ -394,10 +411,17 @@ if __name__ == '__main__':
 
         else:
             move = game.get_move()
+            print("game.turn in while loop after getting ai move: ", game.turn)
             print("AI move: ", move)
-            game.show()
+            # game.show()
+
+        # count += 1
 
         game.play_move(move)
+        # if count == 2:
+            # print("----------turn--------", game.turn)
+            # break
+
 
     print("GAME OVER!")
     game.show()
