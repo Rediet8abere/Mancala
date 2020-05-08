@@ -46,7 +46,7 @@ h = {
     10: { owner : ai, next : { player : 11, ai : 11}, role : "hole", "oop": 4, "distobank":  {player: 10, ai: 4}},
     11: { owner : ai, next : { player : 12, ai : 12}, role : "hole", "oop": 3, "distobank":  {player: 9, ai: 3}},
     12: { owner : ai, next : { player : 13, ai : 13}, role : "hole", "oop": 2, "distobank":  {player: 8, ai: 2}},
-    13: { owner : ai, next : { player : 1, ai : 14}, role : "hole", "oop": 1, "distobank":  {player: 7, ai: 1}},
+    13: { owner : ai, next : { player : 14, ai : 14}, role : "hole", "oop": 1, "distobank":  {player: 7, ai: 1}},
     14: { owner : ai, next : { player : 1, ai : 1}, role : "bank", "oop": None, "distobank": None }
 }
 
@@ -64,12 +64,7 @@ class kalahGame():
         self.reset_board()
 
     def is_own_bank(self, last_hole):
-        #num of marble in this hole
-        # print("in is_own_bank: ", last_hole)
-        # print("self.board[last_hole]: ", self.board[last_hole])
         count = self.board[last_hole] % 13 #if number of marble is > 12 they go around and land in bank itself
-        # print("count: ", count)
-        # print("h: ", h[last_hole]["distobank"][self.turn])
         return count == h[last_hole]["distobank"][self.turn]
 
     def possible_moves(self):
@@ -86,7 +81,6 @@ class kalahGame():
 
 
 
-    "Is steal possible "
 
     def recurse_moves(self, move_list, completed_list):
         """Utility: is_own_bank """
@@ -217,9 +211,9 @@ class kalahGame():
         if self.board[cur_hole] == 1 and cur_hole != (banks[player] or banks[ai]): # are we left with one marble
             if h[cur_hole][owner] == self.turn: # check turn
                 if h[cur_hole][role] == hole: # check if we are on hole
-                    if self.board[h[cur_hole][oop]]: #look for current hole's opponent
+                    if self.board[h[cur_hole]["oop"]]: #look for current hole's opponent
                         self._scoop(cur_hole) #take marble from current hole
-                        self._scoop(h[cur_hole][oop]) #take marbles from opponent
+                        self._scoop(h[cur_hole]["oop"]) #take marbles from opponent
                         self._drop_all(banks[self.turn])
 
 
