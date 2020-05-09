@@ -109,15 +109,20 @@ class kalahGame():
                 possible.append(hole)
         return possible
 
-    def minimax(self, move, depth, maximazing_player):
+    def minimax(self, move, depth, alpha, beta, maximazing_player):
         """
-        depth: how long is it taking me to get to a certain move
+        Desc: This is a minimax algorithm which recursively calls itself to
+        calculate the best score for AI by optimize for AI, but minimizing for
+        player(user).
+        move: the move we want to exhaustively check the score.
+        depth: how long is it taking me to get to a certain move.
+        alpha: the worst possible score for AI.
+        beta: the best possible score for player(user).
         maximazing_player: to keep track of whose turn it is in the game
         and decides moves based on that.
         """
-        # evaluate who has more marbles
-        # evaluate who has more moves that leads to bank and steal
-        if depth == 0: #I need to account for game over
+
+        if depth == 0 or self.is_over():
             return self.score()
 
         if maximazing_player:
@@ -129,26 +134,33 @@ class kalahGame():
             opp_moves = self.possible_moves()
             board_copy = self.board[:]
             for op_move in opp_moves:
-                eval_score = self.minimax(op_move, depth-1, False)
+                eval_score = self.minimax(op_move, depth-1, alpha, beta, False) # exhaustively check score if we follow this path
                 self.board = board_copy[:] #restore board after evaluation
-                self.turn = player #give turn to player after playing
+                self.turn = player # switch turn after playing
                 self.opp_turn = ai
-                max_score = max(eval_score, max_score)
+                max_score = max(eval_score, max_score) #we want to maximize the score for ai
+                alpha = max(alpha, eval_score)
+                if beta <= alpha:
+                    break
             return max_score
 
         else: # minimizing_player
             min_score = float('inf')
+            # play move
             self.play_move(move)
             self.turn = ai
             self.opp_turn = player
             ai_moves = self.possible_moves()
             board_copy = self.board[:]
             for ai_move in ai_moves:
-                eval_score = self.minimax(ai_move, depth-1, True)
+                eval_score = self.minimax(ai_move, depth-1, alpha, beta, True) # exhaustively check score if we follow this path
                 self.board = board_copy[:] #restore board after evaluation
-                self.turn = ai
+                self.turn = ai # switch turn after playing
                 self.opp_turn = player
                 min_score = min(min_score, eval_score) #we want to minimize score for player
+                beta = min(beta, eval_score)
+                if beta <= alpha:
+                    break
             return min_score
 
 
@@ -163,7 +175,7 @@ class kalahGame():
         board_copy = self.board[:]
         for move in poss_moves:
             #look for ai move that would result in best score(many marble in bank)
-            ai_score = self.minimax(move, 2, True) #return score and move
+            ai_score = self.minimax(move, 2, float('-inf'), float('inf'), True) #return score and move
             self.board = board_copy[:]
             if ai_score > best_score:
                 best_move = move
