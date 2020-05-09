@@ -32,7 +32,7 @@ role = 2
 
 house = 88
 bank = 99
-# naming issue
+# registers next hole, opponent hole, and distance to bank for every hole on the board
 h = {
     1: { owner : player, next : { player : 2, ai : 2}, role : "hole", "oop": 13, "distobank":  {player: 6, ai: 12}},
     2: { owner : player, next : { player : 3, ai : 3}, role : "hole", "oop": 12, "distobank":  {player: 5, ai: 11}},
@@ -58,7 +58,6 @@ class kalahGame():
         self.turn = player #shows players turn
         self.opp_turn = ai
         self.board = [0]*15 # index 0 holds all the marbles at first
-        # print("self.board in init: ", len(self.board))
         self.marbles_per_hole = 4
         self.board[hand] = 12*self.marbles_per_hole
         self.reset_board()
@@ -69,10 +68,8 @@ class kalahGame():
 
     def possible_moves(self):
         move_list = [[hole] for hole in self.possible_moves_choice()] # list of list
-        # print("move_list: ", move_list)
         completed_list = []
         self.recurse_moves(move_list, completed_list)
-        # print("completed_list: ", completed_list)
         return completed_list
 
     def make_move(self, move):
@@ -307,10 +304,8 @@ if __name__ == '__main__':
             i = int(input("which move do you wanna play? "))
             move = moves[i]
             print("move: ", move)
-
         else:
             move = game.get_move()
-
         game.play_move(move)
 
 
