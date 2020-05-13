@@ -117,6 +117,8 @@ class kalahGame():
         beta: the best possible score for player(user).
         maximazing_player: to keep track of whose turn it is in the game
         and decides moves based on that.
+        Time-complexity: O(b^d) where b is branching factor and d is depth
+        Space-complexity: O(m*d) where m is moves and d is depth
         """
 
         if depth == 0 or self.is_over():
@@ -126,9 +128,8 @@ class kalahGame():
             max_score = float('-inf')
             # play move
             self.play_move(move)
-            self.turn = player
-            self.opp_turn = ai
             opp_moves = self.possible_moves()
+            # print("opp_moves: ", opp_moves)
             board_copy = self.board[:]
             for op_move in opp_moves:
                 eval_score = self.minimax(op_move, depth-1, alpha, beta, False) # exhaustively check score if we follow this path
@@ -145,9 +146,8 @@ class kalahGame():
             min_score = float('inf')
             # play move
             self.play_move(move)
-            self.turn = ai
-            self.opp_turn = player
             ai_moves = self.possible_moves()
+            # print("ai_moves: ", ai_moves)
             board_copy = self.board[:]
             for ai_move in ai_moves:
                 eval_score = self.minimax(ai_move, depth-1, alpha, beta, True) # exhaustively check score if we follow this path
@@ -161,23 +161,22 @@ class kalahGame():
             return min_score
 
 
-
-
-
     def get_move(self):
         """AI gets the best move by calling minimax function"""
         best_score = float('-inf') #a move that would result in storing as many marbles as possible in ai bank
         best_move = []
         poss_moves = self.possible_moves() #compelete list of moves
+        # print("poss_moves: ", poss_moves)
         board_copy = self.board[:]
         for move in poss_moves:
             #look for ai move that would result in best score(many marble in bank)
-            ai_score = self.minimax(move, 2, float('-inf'), float('inf'), True) #return score and move
+            ai_score = self.minimax(move, 4, float('-inf'), float('inf'), True) #return score and move
             self.board = board_copy[:]
             if ai_score > best_score:
                 best_move = move
                 best_score = ai_score
         self.turn = ai
+        print("best_move: ", best_move)
         return best_move
 
 
@@ -229,7 +228,7 @@ class kalahGame():
         print("player: {} score: {}".format(self.turn, self.score()))
         print("hand: {}".format(self.board[hand]))
         print("board:\n")
-        print("             13         12         11          10           09          08                    ")
+        print("             13         12         11          10           09          08                    AI")
         print("       " + " ".join(
             ["    [{:02d}]   ".format(self.board[hole]) for hole in reversed(holes[ai])]
         ))
@@ -239,7 +238,7 @@ class kalahGame():
         print("       " + " ".join(
             ["    [{:02d}]   ".format(self.board[hole]) for hole in holes[player]]
         ))
-        print("             01         02         03          04           05          06                      ")
+        print("             01         02         03          04           05          06                  USER")
 
 
     def score(self, playing=None):
@@ -302,6 +301,8 @@ if __name__ == '__main__':
             for i, move in enumerate(moves): #no need to enumerate, show user their option and let them choose
                 print(i, move)
             i = int(input("which move do you wanna play? "))
+            while i > len(moves)-1:
+                i = int(input("Index out of range, which move do you wanna play? "))
             move = moves[i]
             print("move: ", move)
         else:
